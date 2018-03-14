@@ -10,6 +10,7 @@ import org.apache.hawq.pxf.api.utilities.Plugin;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
+import java.io.InputStreamReader;
 
 /**
  * Created by ayyappa on 27/12/17.
@@ -18,7 +19,8 @@ public class SimpleFileAccessor extends Plugin implements ReadAccessor {
     private LogAyy LOG;
     private Parameters params;
     FileInStream in;
-   // BufferedReader rd;
+    InputStreamReader bf;
+    BufferedReader rd;
     OneRow oneRow = new OneRow();
     public SimpleFileAccessor(InputData input) {
         super(input);
@@ -38,6 +40,8 @@ public class SimpleFileAccessor extends Plugin implements ReadAccessor {
             // FileReader file = new FileReader(param.filename);
             //rd = new BufferedReader(file);
             in = fs.openFile(path);
+            bf = new InputStreamReader(in); // new for performance
+            rd = new BufferedReader(bf);  // new for performance
 
           //  LOG.logit("Filename:  " + path);
 
@@ -54,17 +58,25 @@ public class SimpleFileAccessor extends Plugin implements ReadAccessor {
     public OneRow readNextObject() throws Exception {
         String line="";
         boolean exit=false;
-        while (true){
-            int temp =  in.read();
-            if (temp == -1 ) { exit = true; break;}
-            if (temp == 10 ){ break;}  
-            line = line + (char) temp;
-        }
-        if (exit) { return null;}
-        else {
+     //   while (true){
+     //       rd.readLine();
+     //       int temp =  in.read();
+     //       if (temp == -1 ) { exit = true; break;}
+     //       if (temp == 10 ){ break;}
+     //       line = line + (char) temp;
+     //   }
+     //   if (exit) { return null;}
+     //   else {
+     //       oneRow.setKey(1);
+     //       oneRow.setData(line);
+     //       //LOG.logit(line);
+     //       return oneRow;
+     //   }
+        while (true){           // new for performance
+            line = rd.readLine();  // new for performance
+            if (line == null) {return null;}
             oneRow.setKey(1);
             oneRow.setData(line);
-            //LOG.logit(line);
             return oneRow;
         }
 
@@ -86,3 +98,4 @@ public class SimpleFileAccessor extends Plugin implements ReadAccessor {
         in.close();
     }
 }
+
